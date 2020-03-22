@@ -1,0 +1,6 @@
+bin/
+# CMake
+build/
+cmake_install.cmake
+CMakeCache.txt
+CMakeFiles
