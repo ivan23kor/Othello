@@ -8,8 +8,9 @@ void printVector(const std::vector<int> &v) {
         return;
     }
     for (const auto &it: v) {
-        std::cout << it << " " << std::endl;
+        cout << it << " ";
     }
+    cout << endl;
 }
 
 SquareBoard::SquareBoard(int edgeSize) {
@@ -43,65 +44,67 @@ bool SquareBoard::put(int pos, char cell) {
 
 OthelloBoard::OthelloBoard(int edgeSize)
         : SquareBoard::SquareBoard(edgeSize) {
-    int start = this->edgeSize / 2 - 1 + (this->edgeSize / 2 - 1) * this->edgeSize;
-    this->put(start, WHITE);
-    this->put(start + 1, BLACK);
-    this->put(start + this->edgeSize, BLACK);
-    this->put(start + this->edgeSize + 1, WHITE);
+    if (edgeSize < MINIMUM_OTHELLO_BOARD_SIZE) {
+        cerr << "Minimum Othello board size is " << MINIMUM_OTHELLO_BOARD_SIZE
+             << endl;
+        exit(1);
+    }
+    int start = (this->edgeSize + 1) * (this->edgeSize / 2 - 1);
+    this->put(12, BLACK);
+    this->put(6, WHITE);
+    this->put(7, WHITE);
+    this->put(8, WHITE);
+    this->put(11, WHITE);
+    this->put(13, WHITE);
+    this->put(16, WHITE);
+    this->put(17, WHITE);
+    this->put(18, WHITE);
+    // this->put(start, WHITE);
+    // this->put(start + 1, BLACK);
+    // this->put(start + this->edgeSize, BLACK);
+    // this->put(start + this->edgeSize + 1, WHITE);
 }
 
-vector<int> OthelloBoard::getVerticalMoves(int pos) {
-    vector<int> ans;
-    if (!this->valid_position(pos)) {
-        return ans;
+bool OthelloBoard::exploreDirection(int cellPos, int inc, char opponent,
+                                    vector<int> &moves) {
+    int pos = cellPos + inc;
+    for (; pos >= 0 /* upper border */
+            && pos < this->cellCount /* bottom border */
+            && pos % this->edgeSize != 0 /* left border */
+            && (pos + 1) % this->edgeSize != 0 /* right border */
+            && this->cells[pos] == opponent; /* still on line */
+         pos += inc);
+    // advanced more than once and found an empty cell
+    if (pos - cellPos != inc && this->cells[pos] == EMPTY) {
+        moves.push_back(pos);
     }
-
-    int i = pos;
-    char player = cells[pos];
-    char opponent = cells[pos] == BLACK ? WHITE : BLACK;
-    // Look up
-    for (i = pos - this->edgeSize; i >= 0 && this->cells[i] == opponent; i -= this->edgeSize);
-    if (pos - i > this->edgeSize) ans.push_back(i);
-    // Look down
-    for (i = pos + this->edgeSize; i < this->cellCount && this->cells[i] == opponent; i += this->edgeSize);
-    if (i - pos > this->edgeSize) ans.push_back(i);
-    return ans;
-}
-
-vector<int> OthelloBoard::getHorizontalMoves(int pos) {
-    vector<int> ans;
-    if (!this->valid_position(pos)) {
-        return ans;
-    }
-
-    int i = pos;
-    char player = cells[pos];
-    char opponent = cells[pos] == BLACK ? WHITE : BLACK;
-    // Look left
-    for (i = pos - 1; i >= pos - pos % this->edgeSize && this->cells[i] == opponent; i -= 1);
-    if (pos - i > 1) ans.push_back(i);
-    // Look down
-    for (i = pos + 1; i < pos - pos % this->edgeSize + this->edgeSize && this->cells[i] == opponent; i += 1);
-    if (i - pos > 1) ans.push_back(i);
-    return ans;
 }
 
 vector<int> OthelloBoard::getMoves(char player /*BLACK or WHITE*/) {
+    int pos = 0; // Will be used for move search
+    char opponent = player == BLACK ? WHITE : BLACK;
     vector<int> moves = {};
-    for (size_t i = 0; i < this->cells.size(); ++i){
-        if (this->cells[i] != player) {
+    for (size_t cellPos = 0; cellPos < this->cells.size(); ++cellPos){
+        if (this->cells[cellPos] != player) {
             continue;
         }
-        // Analyze vertical lines
-        vector<int> ans = this->getVerticalMoves(i);
-        cout << "Analyzing " << i << ", vertical moves vector: ";
-        printVector(ans);
-        // Analyze horizontal lines
-        ans = this->getHorizontalMoves(i);
-        cout << "Analyzing " << i << ", horizontal moves vector: ";
-        printVector(ans);
-        // Analyze NW-SE diagonals
-        // Analyze NE-SW diagonals
+        // Look left
+        this->exploreDirection(cellPos, -1, opponent, moves);
+        // Look NW
+        this->exploreDirection(cellPos, -this->edgeSize - 1, opponent, moves);
+        // Look up
+        this->exploreDirection(cellPos, -this->edgeSize, opponent, moves);
+        // Look NE
+        this->exploreDirection(cellPos, -this->edgeSize + 1, opponent, moves);
+        // Look right
+        this->exploreDirection(cellPos, 1, opponent, moves);
+        // Look SE
+        this->exploreDirection(cellPos, +this->edgeSize + 1, opponent, moves);
+        // Look down
+        this->exploreDirection(cellPos, this->edgeSize, opponent, moves);
+        // Look SW
+        this->exploreDirection(cellPos, this->edgeSize - 1, opponent, moves);
+        printVector(moves);
     }
     return moves;
 }

@@ -4,6 +4,9 @@
 
 #ifndef _BOARD_HPP
 #define _BOARD_HPP
+
+#define MINIMUM_OTHELLO_BOARD_SIZE 3
+
 enum Cell: char {EMPTY = '.', BLACK = 'x', WHITE = 'o'};
 
 class SquareBoard
@@ -24,6 +27,8 @@ class OthelloBoard : public SquareBoard
 {
 public:
     OthelloBoard(int edgeSize);
+    bool exploreDirection(int cellPos, int inc, char opponent,
+                          std::vector<int> &moves);
     std::vector<int> getVerticalMoves(int pos);
     std::vector<int> getHorizontalMoves(int pos);
     std::vector<int> getMoves(char player);
