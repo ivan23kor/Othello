@@ -22,22 +22,28 @@ void printMovesMap(const MovesMap &moves) {
         cout << "<empty map>" << endl;
         return;
     }
-    for (const auto &[key, value]: moves) {
-        cout << "[" << key << "]: ";
-        printVector(value);
+    for (const auto &[moves, flips]: moves) {
+        cout << "[" << moves << "]: ";
+        printVector(flips);
     }
 }
 
 SquareBoard::SquareBoard(int edgeSize) {
     this->edgeSize = edgeSize;
-    this->cellCount = edgeSize * edgeSize;
-    this->cells = vector<char>(this->cellCount, EMPTY);
+    this->nCells = edgeSize * edgeSize;
+    this->cells = vector<char>(this->nCells, EMPTY);
 }
 
-bool SquareBoard::print() {
+bool SquareBoard::print() const {
     for (size_t i = 0; i < this->cells.size(); ++i)
     {
+        // Prepend TAB
+        if (i % this->edgeSize == 0) {
+            cout << '\t';
+        }
+        // Print cell
         cout << this->cells[i] << " ";
+        // Append newline
         if ((i + 1) % this->edgeSize == 0) {
             cout << endl;
         }
@@ -78,8 +84,11 @@ OthelloBoard::OthelloBoard(int edgeSize, char player)
 }
 
 bool OthelloBoard::isGameOver() {
-    int b = blackCount, w = whiteCount;
-    return (b > 0 && w == 0) || (w > 0 && b == 0) || (b + w == cellCount);
+    int curPlayerNMoves = getMoves().size();
+    changePlayer(); // change to opponent
+    int opponentNMoves = getMoves().size();
+    changePlayer(); // change back to the current player
+    return curPlayerNMoves == 0 && opponentNMoves == 0;
 }
 
 void OthelloBoard::exploreDirection(int cellPos, int inc, MovesMap &moves) {
@@ -87,7 +96,7 @@ void OthelloBoard::exploreDirection(int cellPos, int inc, MovesMap &moves) {
     char opponent = player == BLACK ? WHITE : BLACK;
     int pos = cellPos + inc;
     for (; pos >= 0 && /* upper border */
-           pos < this->cellCount && /* bottom border */
+           pos < this->nCells && /* bottom border */
            pos % this->edgeSize != 0 && /* left border */
            (pos + 1) % this->edgeSize != 0 && /* right border */
            this->cells[pos] == opponent; /* still on line */
@@ -147,4 +156,70 @@ void OthelloBoard::move(MovesMap &moves, int to) {
 
 int OthelloBoard::random(const MovesMap& moves) {
     return moves.begin()->first;
+}
+
+int OthelloBoard::minimax(MovesMap& moves) {
+    int max = nINF, min = INF;
+
+    int i,j,value = 1;
+
+    if (isGameOver()) {
+        return score();
+    }
+
+    vector<int> scores(moves.size(), 0);
+    for (auto &[move, flips]: moves) {
+        cout << "Making move " << move << endl;
+        this->move(moves, move);
+    }
+//         for(i=0;i<9;i++)
+//             {
+//                  if(board[i] == '*')
+//                 {
+//                     if(min_val>max_val) // reverse of pruning condition.....
+//                   {
+//                       if(flag == true)
+//                    {
+//                      board[i] = 'X';
+//                      value = minimax(false);
+//                    }
+//                     else
+//                     {
+//                       board[i] = 'O';
+//                       value = minimax(true);
+//                     }
+//                   board[i] = '*';
+//                   score[i] = value;
+//                  }
+//                }
+//             }
+
+//         if(flag == true)
+//         {
+//                  max_val = -1000;
+//                  for(j=0;j<9;j++)
+//                 {
+//                     if(score[j] > max_val && score[j] != 1)
+//                     {
+//                         max_val = score[j];
+//                         index1 = j;
+//                     }
+//                 }
+//                 return max_val;
+//         }
+//         if(flag == false)
+//         {
+//                 min_val = 1000;
+//                 for(j=0;j<9;j++)
+//                 {
+//                     if(score[j] < min_val && score[j] != 1)
+//                     {
+//                         min_val = score[j];
+//                         index1 = j;
+//                     }
+//                 }
+//             return min_val;
+//         }
+// }
+    return 0;
 }

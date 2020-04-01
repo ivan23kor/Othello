@@ -16,7 +16,7 @@ enum Cell: char {EMPTY = '.', BLACK = 'x', WHITE = 'o'};
 class SquareBoard
 {
 protected:
-    int edgeSize, cellCount;
+    int edgeSize, nCells;
     char player;
     std::vector<char> cells;
 
@@ -26,10 +26,10 @@ public:
     // Setup
     SquareBoard(int edgeSize);
     ~SquareBoard() {};
-    bool print();
+    bool print() const;
 
     // Move handling
-    bool validPosition(int pos) {return 0 <= pos && pos < cellCount;}
+    bool validPosition(int pos) {return 0 <= pos && pos < nCells;}
 };
 
 class OthelloBoard : public SquareBoard
@@ -51,6 +51,7 @@ public:
 
     // Algorithms
     int random(const MovesMap& moves);
+    int minimax(MovesMap& moves);
 };
 
 void printVector(const std::vector<int> &v);
