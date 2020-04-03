@@ -6,49 +6,74 @@ using namespace std;
 
 
 Game::Game(OthelloBoard &board, const std::string windowName)
-        : board(board.getEdgeSize()) {
+        : board(board), boardGui(board.getEdgeSize()) {
     // Center window
-    sf::VideoMode mode = VideoMode::getDesktopMode();
+    VideoMode mode = VideoMode::getDesktopMode();
     int width = mode.width * WINDOW_SCALE, height = mode.height * WINDOW_SCALE;
     window.create(VideoMode(width, height), windowName);
     window.setPosition(Vector2i(mode.width * (1 - WINDOW_SCALE) / 2,
                                 mode.height * (1 - WINDOW_SCALE) / 2));
 
-    // Board and score dividing line
+    // BoardGui and score dividing line
     divider = RectangleShape(Vector2f(DIVIDER_THICKNESS, height));
     divider.setFillColor(Color::Black);
     divider.setPosition(height, 0);
 
     // Place board in the center of the left part
-    this->board.place(Vector2f(BOARD_OFFSET, BOARD_OFFSET),
-        Vector2f(height - 2 * BOARD_OFFSET, height - 2 * BOARD_OFFSET));
-
-    this->board.update(board.copyCells());
+    boardGui.place(height);
+    boardGui.update(board.getCells());
 }
 
 void Game::play() {
     Event event;
+    board.exploreMoves();
+
     while (window.isOpen())
     {
         while (window.pollEvent(event))
         {
+            if (event.type == Event::MouseButtonPressed)
+            {
+                if (event.mouseButton.button == Mouse::Left)
+                {
+                    boardGui.click(event.mouseButton.x, event.mouseButton.y,
+                        board);
+                }
+            }
+            // if (event.type == Event::KeyPressed) {
+            //     if (event.key.code == KeyBoard::Space) {
+            //         board.move(PASSING_MOVE);
+            //     }
+            // }
+            if      (event.type == Event::MouseButtonPressed) {
+                board.exploreMoves();
+                if (board.isGameOver()) {
+                    closeWindow();
+                }
+            }
             if (event.type == Event::Closed) {
-                cout << "Closing the window." << endl;
-                window.close();
-                return;
+                closeWindow();
             }
         }
 
         window.clear(Color::White);
-        board.draw(window);
+        boardGui.draw(window);
         window.draw(divider);
         window.display();
     }
 }
 
-Board::Board(int edgeSize) {
+void Game::closeWindow() {
+    cout << "Closing the window." << endl;
+    window.close();
+    return;
+}
+
+BoardGui::BoardGui(int edgeSize) {
     this->edgeSize = edgeSize;
     nCells = edgeSize * edgeSize;
+
+    base.offset = BOARD_OFFSET;
 
     base.background.setFillColor(Color(0, 160, 12));
     base.background.setOutlineColor(Color::Black);
@@ -73,7 +98,7 @@ Board::Board(int edgeSize) {
     discs[start + edgeSize + 1].setFillColor(Color::Black);
 }
 
-void Board::update(vector<char> cells) {
+void BoardGui::update(vector<char> &cells) {
     for (int i = 0, e = cells.size(); i < e; ++i) {
         if (cells[i] == BLACK) {
             discs[i].setFillColor(Color::Black);
@@ -85,21 +110,21 @@ void Board::update(vector<char> cells) {
     }
 }
 
-void Board::place(const sf::Vector2f &position, const sf::Vector2f &size) {
+void BoardGui::place(int height) {
     // For grid lines
-    float left = position.x, top = position.y;
-    base.step = size.x / (float)edgeSize; // presume the board is always square
-
-    base.background.setPosition(position);
-    base.background.setSize(size);
+    int size = height - 2 * base.offset;
+    base.step = size / (float)edgeSize; // presume the board is always square
+    base.background.setPosition(base.offset, base.offset);
+    base.background.setSize(Vector2f(size, size));
 
     for (int i = 0; i < edgeSize - 1; ++i) {
         // Vertical
-        base.grid[i].setSize(Vector2f(BOARD_THICKNESS, size.y));
-        base.grid[i].setPosition(left + (i + 1) * base.step, top);
+        base.grid[i].setSize(Vector2f(BOARD_THICKNESS, size));
+        base.grid[i].setPosition(base.offset + (i + 1) * base.step, base.offset);
         // Horizontal
-        base.grid[i + edgeSize - 1].setSize(Vector2f(size.x, BOARD_THICKNESS));
-        base.grid[i + edgeSize - 1].setPosition(left, top + (i + 1) * base.step);
+        base.grid[i + edgeSize - 1].setSize(Vector2f(size, BOARD_THICKNESS));
+        base.grid[i + edgeSize - 1].setPosition(base.offset,
+            base.offset + (i + 1) * base.step);
         base.grid[i + edgeSize - 1].setRotation(0);
     }
 
@@ -109,12 +134,21 @@ void Board::place(const sf::Vector2f &position, const sf::Vector2f &size) {
         disc.setRadius(radius);
     }
     for (int i = 0, size = discs.size(); i < size; ++i) {
-        discs[i].setPosition(position.x + (i % edgeSize) * base.step + shift,
-                             position.y + (i / edgeSize) * base.step + shift);
+        discs[i].setPosition(base.offset + (i % edgeSize) * base.step + shift,
+                             base.offset + (i / edgeSize) * base.step + shift);
     }
 }
+void BoardGui::click(int x, int y, OthelloBoard &board) {
+    int cellNumber = (y - base.offset) / base.step * edgeSize +
+                     (x - base.offset) / base.step;
+    if (board.getMoves().find(cellNumber) != board.getMoves().end()) {
+        board.move(cellNumber);
+        update(board.getCells());
+    }
+    board.print();
+}
 
-void Board::draw(sf::RenderWindow &window) {
+void BoardGui::draw(RenderWindow &window) {
     window.draw(base.background);
     for (int i = 0; i < 2 * (edgeSize - 1); ++i) {
         window.draw(base.grid[i]);

@@ -37,27 +37,32 @@ public:
 class OthelloBoard : public SquareBoard
 {
     int blackCount, whiteCount;
+    MovesMap moves;
 public:
-    void move(MovesMap &moves, int to);
     // Setup
     OthelloBoard(int edgeSize, char player=BLACK);
 
     // Setters getters
     void setPlayer(char player) {this->player = player;}
-    void changePlayer() {setPlayer(player == BLACK ? WHITE : BLACK);}
     char getPlayer() {return player;}
+    MovesMap &getMoves() {return moves;}
+    std::vector<char> &getCells() {return cells;}
     std::vector<char> copyCells() {return std::vector<char> (cells);}
 
+    void printMoves();
+    
     // Move handling
     bool isGameOver();
+    void changePlayer() {setPlayer(player == BLACK ? WHITE : BLACK);}
     int score() const {return blackCount - whiteCount;}
-    void exploreDirection(int cellPos, int inc, MovesMap &moves);
-    MovesMap getMoves();
+    void exploreDirection(int cellPos, int inc);
+    void exploreMoves();
+    void move(int to);
 
     // Algorithms
-    int random(const MovesMap& moves);
-    int greedy(const MovesMap& moves);
-    int minimax(MovesMap& moves);
+    int random();
+    int greedy();
+    int minimax();
 };
 
 void printVector(const std::vector<int> &v);

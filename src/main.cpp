@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <iostream>
+#include "Agent.hpp"
 #include "Board.hpp"
 #include "Gui.hpp"
 
@@ -22,44 +23,8 @@ void printResult(const OthelloBoard &board) {
     cout << "********************************************************************************" << endl;
 }
 
-inline int readHumanMove(const MovesMap &moves) {
-    int move = PASSING_MOVE;
-    auto ME = moves.end();
-
-    do {
-        cout << "Which one are you choosing? ";
-        cin >> move;
-    } while (moves.find(move) == ME && move != PASSING_MOVE);
-    return move;
-}
-
-class Agent
-{
-    OthelloBoard &board;
-    bool AI; // true for AI, false for human
-public:
-    Agent() = delete;
-    Agent(bool AI, OthelloBoard &board) : AI(AI), board(board) {}; // true for AI, false for human
-    ~Agent() {}
-    int getMove(const MovesMap &moves) {
-        int move;
-        if (AI) {
-            cout << "I can make the following moves:" << endl;
-            printMovesMap(moves);
-            move = board.greedy(moves);
-            cout << "I move to " << move << endl;
-        } else {
-            cout << "You can make the following moves:" << endl;
-            printMovesMap(moves);
-            move = readHumanMove(moves);
-        }
-        return move;
-    }
-};
-
 void playNoGUI(OthelloBoard &board, Agent &agent1, Agent &agent2) {
     int move = PASSING_MOVE;
-    MovesMap moves;
     bool agentToPlay = true; // true for first player's turn, false otherwise
 
     int count = 1;
@@ -67,12 +32,12 @@ void playNoGUI(OthelloBoard &board, Agent &agent1, Agent &agent2) {
         cout << " Move #" << count++ << endl;
         board.print();
 
-        moves = board.getMoves();
-        move = agentToPlay ? agent1.getMove(moves) : agent2.getMove(moves);
-        board.move(moves, move);
+        board.exploreMoves();
+        move = agentToPlay ? agent1.getMove() : agent2.getMove();
+        board.move(move);
 
         cout << "===================================================\n" << endl;
-        agentToPlay = ~agentToPlay;
+        agentToPlay ^= 1;
     }
 
     printResult(board);    
@@ -85,7 +50,7 @@ void playGUI(OthelloBoard &board) {
 
 
 int main(int argc, char const *argv[]) {
-    bool GUI = true;
+    bool GUI = false;
 
     int board_size = atoi(argv[1]);
     if (board_size < MINIMUM_OTHELLO_BOARD_SIZE) {

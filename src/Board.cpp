@@ -8,24 +8,24 @@ const int INF = std::numeric_limits<int>::max();
 const int nINF = std::numeric_limits<int>::min(); // negative infinity
 
 
-void printVector(const vector<int> &v) {
+void printVector(const std::vector<int> &v) {
     if (v.empty()) {
-        cout << "<empty vector>" << endl;
+        std::cout << "<empty vector>" << std::endl;
         return;
     }
     for (const auto &it: v) {
-        cout << it << " ";
+        std::cout << it << " ";
     }
-    cout << endl;
+    std::cout << std::endl;
 }
 
 void printMovesMap(const MovesMap &moves) {
     if (moves.empty()) {
-        cout << "<empty map>" << endl;
+        std::cout << "<empty map>" << std::endl;
         return;
     }
     for (const auto &[moves, flips]: moves) {
-        cout << "[" << moves << "]: ";
+        std::cout << "[" << moves << "]: ";
         printVector(flips);
     }
 }
@@ -96,70 +96,80 @@ OthelloBoard::OthelloBoard(int edgeSize, char player)
     whiteCount = 2;
 
     int start = (edgeSize + 1) * (edgeSize / 2 - 1);
-    // put(5, WHITE);
-    // put(6, WHITE);
-    // put(9, BLACK);
-    // put(11, BLACK);
     put(start, WHITE);
     put(start + 1, BLACK);
     put(start + edgeSize, BLACK);
     put(start + edgeSize + 1, WHITE);
 }
 
+void OthelloBoard::printMoves() {
+    std::cout << "Possible moves:" << std::endl;
+    printMovesMap(moves);
+}
+
 bool OthelloBoard::isGameOver() {
-    int curPlayerNMoves = getMoves().size();
+    if (moves.size() != 0) {
+        return false;
+    }
+
+    exploreMoves();
+    int curPlayerNMoves = moves.size();
+
     changePlayer(); // change to opponent
-    int opponentNMoves = getMoves().size();
+    exploreMoves();
+    int opponentNMoves = moves.size();
+
     changePlayer(); // change back to the current player
     return curPlayerNMoves == 0 && opponentNMoves == 0;
 }
 
-void OthelloBoard::exploreDirection(int cellPos, int inc, MovesMap &moves) {
+void OthelloBoard::exploreDirection(int cellPos, int inc) {
     vector<int> flips; // positions of the discs to flip
     char opponent = player == BLACK ? WHITE : BLACK;
     int pos = cellPos + inc;
-    for (; pos >= 0 && /* upper border */
-           pos < nCells && /* bottom border */
-           pos % edgeSize != 0 && /* left border */
-           (pos + 1) % edgeSize != 0 && /* right border */
-           cells[pos] == opponent; /* still on line */
-           pos += inc) {
+    for (; ((inc < 0 &&  /* upper-left */
+             pos >= 0 && /* upper border */
+             pos % edgeSize != 0) || /* left border */
+            (inc > 0 && /* bottom-right */
+             pos < nCells && /* bottom border */
+             (pos + 1) % edgeSize != 0)) && /* right border */
+            cells[pos] == opponent; /* still on line */
+            pos += inc) {
         flips.push_back(pos);
     }
-     // advanced more than once and found an empty cell
+    // advanced more than once and found an empty cell
     if (pos - cellPos != inc && cells[pos] == EMPTY) {
         moves[pos].insert(moves[pos].end(), flips.begin(), flips.end());
     }
 }
 
-MovesMap OthelloBoard::getMoves() {
+void OthelloBoard::exploreMoves() {
     static size_t cellPos = 0; // index for player cell iteration
-    MovesMap moves;
+    moves.clear();
     for (cellPos = 0; cellPos < cells.size(); ++cellPos){
         if (cells[cellPos] != player) {
             continue;
         }
         // Look left
-        exploreDirection(cellPos, -1, moves);
+        exploreDirection(cellPos, -1);
         // Look NW
-        exploreDirection(cellPos, -edgeSize - 1, moves);
+        exploreDirection(cellPos, -edgeSize - 1);
         // Look up
-        exploreDirection(cellPos, -edgeSize, moves);
+        exploreDirection(cellPos, -edgeSize);
         // Look NE
-        exploreDirection(cellPos, -edgeSize + 1, moves);
+        exploreDirection(cellPos, -edgeSize + 1);
         // Look right
-        exploreDirection(cellPos, 1, moves);
+        exploreDirection(cellPos, 1);
         // Look SE
-        exploreDirection(cellPos, edgeSize + 1, moves);
+        exploreDirection(cellPos, edgeSize + 1);
         // Look down
-        exploreDirection(cellPos, edgeSize, moves);
+        exploreDirection(cellPos, edgeSize);
         // Look SW
-        exploreDirection(cellPos, edgeSize - 1, moves);
+        exploreDirection(cellPos, edgeSize - 1);
     }
-    return moves;
 }
 
-void OthelloBoard::move(MovesMap &moves, int to) {
+void OthelloBoard::move(int to) {
     if (to == PASSING_MOVE) {
         changePlayer();
         return;
@@ -182,11 +192,11 @@ void OthelloBoard::move(MovesMap &moves, int to) {
     changePlayer();
 }
 
-int OthelloBoard::random(const MovesMap& moves) {
+int OthelloBoard::random() {
     return moves.begin()->first;
 }
 
-int OthelloBoard::greedy(const MovesMap& moves) {
+int OthelloBoard::greedy() {
     int bestMove = PASSING_MOVE, bestLen = 0;
     for (auto &[to, flips]: moves) {
         if (flips.size() > bestLen) {
@@ -197,68 +207,21 @@ int OthelloBoard::greedy(const MovesMap& moves) {
     return bestMove;
 }
 
-int OthelloBoard::minimax(MovesMap& moves) {
-    int max = nINF, min = INF;
+// TODO
+int OthelloBoard::minimax() {
+    // int max = nINF, min = INF;
 
-    int i,j,value = 1;
+    // int i,j,value = 1;
 
-    if (isGameOver()) {
-        return score();
-    }
+    // if (isGameOver()) {
+    //     return score();
+    // }
 
-    vector<int> scores(moves.size(), 0);
-    for (auto &[move, flips]: moves) {
-        cout << "Making move " << move << endl;
-        this->move(moves, move);
-    }
-//         for(i=0;i<9;i++)
-//             {
-//                  if(board[i] == '*')
-//                 {
-//                     if(min_val>max_val) // reverse of pruning condition.....
-//                   {
-//                       if(flag == true)
-//                    {
-//                      board[i] = 'X';
-//                      value = minimax(false);
-//                    }
-//                     else
-//                     {
-//                       board[i] = 'O';
-//                       value = minimax(true);
-//                     }
-//                   board[i] = '*';
-//                   score[i] = value;
-//                  }
-//                }
-//             }
+    // vector<int> scores(moves.size(), 0);
+    // for (auto &[move, flips]: moves) {
+    //     cout << "Making move " << move << endl;
+    //     this->move(move);
+    // }
 
-//         if(flag == true)
-//         {
-//                  max_val = -1000;
-//                  for(j=0;j<9;j++)
-//                 {
-//                     if(score[j] > max_val && score[j] != 1)
-//                     {
-//                         max_val = score[j];
-//                         index1 = j;
-//                     }
-//                 }
-//                 return max_val;
-//         }
-//         if(flag == false)
-//         {
-//                 min_val = 1000;
-//                 for(j=0;j<9;j++)
-//                 {
-//                     if(score[j] < min_val && score[j] != 1)
-//                     {
-//                         min_val = score[j];
-//                         index1 = j;
-//                     }
-//                 }
-//             return min_val;
-//         }
-// }
-    return 0;
+    // return 0;
 }

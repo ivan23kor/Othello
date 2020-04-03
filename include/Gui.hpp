@@ -1,5 +1,7 @@
 #include <string>
 #include <SFML/Graphics.hpp>
+#include <SFML/Window.hpp>
+#include <SFML/System.hpp>
 #include "Board.hpp"
 
 #ifndef _GUI_HPP
@@ -20,33 +22,36 @@ typedef struct Base_
 {
     sf::RectangleShape background;
     std::vector<sf::RectangleShape> grid;
-    float step;
+    int offset, step;
 } Base;
 
-class Board {
+class BoardGui {
     int edgeSize, nCells;
     Base base;
     std::vector<sf::CircleShape> discs;
 
 public:
-    Board() = delete;
-    Board(int edgeSize);
-    ~Board() {}
-    void update(std::vector<char> cells);
-    void place(const sf::Vector2f &position, const sf::Vector2f &size);
+    BoardGui() = delete;
+    BoardGui(int edgeSize);
+    ~BoardGui() {}
+    void update(std::vector<char> &cells);
+    void place(int height);
+    void click(int x, int y, OthelloBoard &board);
     void draw(sf::RenderWindow &window);
 };
 
 class Game {
+    OthelloBoard &board;
     sf::RenderWindow window;
     sf::RectangleShape divider;
-    Board board;
+    BoardGui boardGui;
 
 public:
     Game() = delete;
     Game(OthelloBoard &board, const std::string windowName=WINDOW_NAME);
     ~Game() {};
     void play();
+    void closeWindow();
 };
 
 // class Score
