@@ -1,4 +1,3 @@
-#include <iostream>
 #include <map>
 #include <string>
 #include <vector>
@@ -28,6 +27,9 @@ public:
     ~SquareBoard() {};
     bool print() const;
 
+    // Setters getters
+    int getEdgeSize() {return edgeSize;}
+
     // Move handling
     bool validPosition(int pos) {return 0 <= pos && pos < nCells;}
 };
@@ -39,9 +41,12 @@ public:
     void move(MovesMap &moves, int to);
     // Setup
     OthelloBoard(int edgeSize, char player=BLACK);
+
+    // Setters getters
     void setPlayer(char player) {this->player = player;}
     void changePlayer() {setPlayer(player == BLACK ? WHITE : BLACK);}
     char getPlayer() {return player;}
+    std::vector<char> copyCells() {return std::vector<char> (cells);}
 
     // Move handling
     bool isGameOver();
@@ -51,6 +56,7 @@ public:
 
     // Algorithms
     int random(const MovesMap& moves);
+    int greedy(const MovesMap& moves);
     int minimax(MovesMap& moves);
 };
 

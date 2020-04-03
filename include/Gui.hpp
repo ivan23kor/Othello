@@ -6,6 +6,7 @@
 #define _GUI_HPP
 
 #define WINDOW_NAME "Othello player"
+#define WINDOW_SCALE 0.9
 
 #define DIVIDER_THICKNESS 10
 #define DIVIDER_POSITION 0.6
@@ -13,60 +14,49 @@
 #define BOARD_OFFSET 30
 #define BOARD_THICKNESS 4
 
-namespace Gui
+#define DISC_RADIUS_RATIO 0.4
+
+typedef struct Base_
 {
-    // class Disc {
-    //     char color;
-    //     sf::Vector2f position, size;
-    //     bool visible;
+    sf::RectangleShape background;
+    std::vector<sf::RectangleShape> grid;
+    float step;
+} Base;
 
-    // public:
-    //     Disc() {color=BLACK};
-    //     Disc(char color, const sf::Vector2f &position, const sf::Vector2f &size,
-    //          bool visible=true) 
-    //          : color(color), position(position), size(size), visible(visible);
-    //     ~Disc() {}
-    //     void place(const sf::Vector2f &position, const sf::Vector2f &size)
-    //     void draw(sf::RenderWindow &window);
-    // };
+class Board {
+    int edgeSize, nCells;
+    Base base;
+    std::vector<sf::CircleShape> discs;
 
-    class Board {
-        int edgeSize, nCells;
-        char *cells;
+public:
+    Board() = delete;
+    Board(int edgeSize);
+    ~Board() {}
+    void update(std::vector<char> cells);
+    void place(const sf::Vector2f &position, const sf::Vector2f &size);
+    void draw(sf::RenderWindow &window);
+};
 
-        sf::RectangleShape background;
-        sf::RectangleShape *grid;
+class Game {
+    sf::RenderWindow window;
+    sf::RectangleShape divider;
+    Board board;
 
-    public:
-        Board() = delete;
-        Board(int edgeSize);
-        ~Board() {delete cells;}
-        void place(const sf::Vector2f &position, const sf::Vector2f &size);
-        void draw(sf::RenderWindow &window);
-    };
+public:
+    Game() = delete;
+    Game(OthelloBoard &board, const std::string windowName=WINDOW_NAME);
+    ~Game() {};
+    void play();
+};
 
-    class Game {
-        sf::RenderWindow window;
-        sf::RectangleShape divider;
-        Board board;
+// class Score
+// {
+//     sf::Vector2i position;
+//     sf::Vector2i size;
+//     int score;
+// public:
+//     Score();
+//     ~Score();
+// };
 
-    public:
-        Game() = delete;
-        Game(unsigned width, unsigned height, int boardSize,
-             const std::string windowName=WINDOW_NAME);
-        ~Game() {};
-        void play();
-    };
-
-    // class Score
-    // {
-    //     sf::Vector2i position;
-    //     sf::Vector2i size;
-    //     int score;
-    // public:
-    //     Score();
-    //     ~Score();
-    // };
-
-}
 #endif

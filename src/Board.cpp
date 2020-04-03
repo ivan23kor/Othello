@@ -1,3 +1,5 @@
+#include <iomanip>
+#include <iostream>
 #include "Board.hpp"
 
 using namespace std;
@@ -30,21 +32,42 @@ void printMovesMap(const MovesMap &moves) {
 
 SquareBoard::SquareBoard(int edgeSize) {
     this->edgeSize = edgeSize;
-    this->nCells = edgeSize * edgeSize;
-    this->cells = vector<char>(this->nCells, EMPTY);
+    nCells = edgeSize * edgeSize;
+    cells = vector<char>(nCells, EMPTY);
 }
 
 bool SquareBoard::print() const {
-    for (size_t i = 0; i < this->cells.size(); ++i)
+    // Print color
+    // cout << "\033[2;40m" << " " << "\033[0m";
+    if (player == BLACK) {
+        cout << "\033[;40m\033[1;37m" << "B " << "\033[0m\033[0m";
+    } else {
+        cout << "\033[;47m\033[1;30m" << "W " << "\033[0m\033[0m";
+    }
+
+    for (size_t i = 0; i < cells.size(); ++i)
     {
         // Prepend TAB
-        if (i % this->edgeSize == 0) {
+        if (i % edgeSize == 0) {
             cout << '\t';
         }
+
         // Print cell
-        cout << this->cells[i] << " ";
-        // Append newline
-        if ((i + 1) % this->edgeSize == 0) {
+        cout << cells[i];
+        // if (cells[i] == BLACK) {
+        //     cout << "\033[;40m" << "bb" << "\033[0m";
+        // } else if (cells[i] == WHITE) {
+        //     cout << "\033[;47m\033[1;30m" << "ww" << "\033[0m\033[0m";
+        // } else {
+        //     cout << "\033[;42m" << "  " << "\033[0m";;
+        // }
+
+        // Print the index board besides
+        if ((i + 1) % edgeSize == 0) {
+            cout << "\t\t";
+            for (int j = i - edgeSize + 1; j <= i; ++j){
+                cout << setfill(' ') << setw(3) << j;
+            }
             cout << endl;
         }
     }
@@ -52,7 +75,7 @@ bool SquareBoard::print() const {
 }
 
 bool SquareBoard::put(int pos, char cell) {
-    if (!this->validPosition(pos)) {
+    if (!validPosition(pos)) {
         return false;
     }
     cells[pos] = cell;
@@ -96,15 +119,15 @@ void OthelloBoard::exploreDirection(int cellPos, int inc, MovesMap &moves) {
     char opponent = player == BLACK ? WHITE : BLACK;
     int pos = cellPos + inc;
     for (; pos >= 0 && /* upper border */
-           pos < this->nCells && /* bottom border */
-           pos % this->edgeSize != 0 && /* left border */
-           (pos + 1) % this->edgeSize != 0 && /* right border */
-           this->cells[pos] == opponent; /* still on line */
+           pos < nCells && /* bottom border */
+           pos % edgeSize != 0 && /* left border */
+           (pos + 1) % edgeSize != 0 && /* right border */
+           cells[pos] == opponent; /* still on line */
            pos += inc) {
         flips.push_back(pos);
     }
      // advanced more than once and found an empty cell
-    if (pos - cellPos != inc && this->cells[pos] == EMPTY) {
+    if (pos - cellPos != inc && cells[pos] == EMPTY) {
         moves[pos].insert(moves[pos].end(), flips.begin(), flips.end());
     }
 }
@@ -137,6 +160,11 @@ MovesMap OthelloBoard::getMoves() {
 }
 
 void OthelloBoard::move(MovesMap &moves, int to) {
+    if (to == PASSING_MOVE) {
+        changePlayer();
+        return;
+    }
+
     cells[to] = player;
     for (const auto &flip: moves[to]) {
         cells[flip] = player;
@@ -156,6 +184,17 @@ void OthelloBoard::move(MovesMap &moves, int to) {
 
 int OthelloBoard::random(const MovesMap& moves) {
     return moves.begin()->first;
+}
+
+int OthelloBoard::greedy(const MovesMap& moves) {
+    int bestMove = PASSING_MOVE, bestLen = 0;
+    for (auto &[to, flips]: moves) {
+        if (flips.size() > bestLen) {
+            bestLen = flips.size();
+            bestMove = to;
+        }
+    }
+    return bestMove;
 }
 
 int OthelloBoard::minimax(MovesMap& moves) {

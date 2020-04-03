@@ -1,13 +1,13 @@
+#include <cstdlib>
+#include <iostream>
 #include "Board.hpp"
 #include "Gui.hpp"
 
 using namespace std;
 
-#define BOARD_SIZE 3
-
 void printResult(const OthelloBoard &board) {
     int score = board.score();
-    cout << "================================================================================" << endl;
+    cout << "********************************************************************************" << endl;
     cout << "Final board position:" << endl;
     board.print();
     cout << "Game over, ";
@@ -19,62 +19,90 @@ void printResult(const OthelloBoard &board) {
         cout << "draw";
     }
     cout << '.' << endl;
-    cout << "================================================================================" << endl;
+    cout << "********************************************************************************" << endl;
 }
 
-inline int getTurn(const MovesMap &moves) {
-    int turn = 0;
+inline int readHumanMove(const MovesMap &moves) {
+    int move = PASSING_MOVE;
     auto ME = moves.end();
 
     do {
         cout << "Which one are you choosing? ";
-        cin >> turn;
-    } while (moves.find(turn) == ME && turn != -1);
-    return turn;
+        cin >> move;
+    } while (moves.find(move) == ME && move != PASSING_MOVE);
+    return move;
 }
 
-void playNoGUI(int boardSize) {
-    OthelloBoard board(BOARD_SIZE);
-
-    int turn = -1;
-    const char human = BLACK;
-    MovesMap moves;
-    moves = board.getMoves();
-    board.minimax(moves);
-    return;
-
-    while (!board.isGameOver()) {
-        cout << "The board is like that:" << endl;
-        board.print();
-        moves = board.getMoves();
-
-        if (board.getPlayer() == human) {
+class Agent
+{
+    OthelloBoard &board;
+    bool AI; // true for AI, false for human
+public:
+    Agent() = delete;
+    Agent(bool AI, OthelloBoard &board) : AI(AI), board(board) {}; // true for AI, false for human
+    ~Agent() {}
+    int getMove(const MovesMap &moves) {
+        int move;
+        if (AI) {
+            cout << "I can make the following moves:" << endl;
+            printMovesMap(moves);
+            move = board.greedy(moves);
+            cout << "I move to " << move << endl;
+        } else {
             cout << "You can make the following moves:" << endl;
             printMovesMap(moves);
-
-            turn = getTurn(moves);
-        } else {
-            turn = board.random(moves);
-            cout << "I move to " << turn << endl;
+            move = readHumanMove(moves);
         }
+        return move;
+    }
+};
 
-        if (turn == PASSING_MOVE) {
-            board.changePlayer();
-        } else {
-            board.move(moves, turn);
-        }
+void playNoGUI(OthelloBoard &board, Agent &agent1, Agent &agent2) {
+    int move = PASSING_MOVE;
+    MovesMap moves;
+    bool agentToPlay = true; // true for first player's turn, false otherwise
+
+    int count = 1;
+    while (!board.isGameOver()) {
+        cout << " Move #" << count++ << endl;
+        board.print();
+
+        moves = board.getMoves();
+        move = agentToPlay ? agent1.getMove(moves) : agent2.getMove(moves);
+        board.move(moves, move);
+
         cout << "===================================================\n" << endl;
+        agentToPlay = ~agentToPlay;
     }
 
     printResult(board);    
 }
 
-int main(int argc, char const *argv[]) {
-    playNoGUI(BOARD_SIZE);
+void playGUI(OthelloBoard &board) {
+    Game game(board);
+    game.play();
+}
 
-    // sf::VideoMode mode = sf::VideoMode::getDesktopMode();
-    // Gui::Game game(mode.width * 0.8, mode.height * 0.8, BOARD_SIZE);
-    // game.play();
+
+int main(int argc, char const *argv[]) {
+    bool GUI = true;
+
+    int board_size = atoi(argv[1]);
+    if (board_size < MINIMUM_OTHELLO_BOARD_SIZE) {
+        cout << "Got invalid board size " << board_size;
+        cout << ". Changing the board size to " << MINIMUM_OTHELLO_BOARD_SIZE;
+        cout << endl;
+        board_size = MINIMUM_OTHELLO_BOARD_SIZE;
+    }
+    OthelloBoard board(board_size);
+    Agent agent1(true, board);
+    Agent agent2(false, board);
+
+    if (GUI) {
+        playGUI(board);
+    } else {
+        playNoGUI(board, agent1, agent2);
+    }
 
     return 0;
 }
