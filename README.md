@@ -37,4 +37,3 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 * [Ryan Hayward](https://webdocs.cs.ualberta.ca/~hayward/)
 * [This page](https://skatgame.net/mburo/log.html) demotivated me to spend much time on the algorithm
 
-(c) Ivan Korostelev 2020

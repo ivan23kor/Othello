@@ -102,7 +102,7 @@ OthelloBoard::OthelloBoard(int edgeSize, char player)
     put(start + edgeSize + 1, WHITE);
 }
 
-void OthelloBoard::printMoves() {
+void OthelloBoard::printMoves() const {
     std::cout << "Possible moves:" << std::endl;
     printMovesMap(moves);
 }
@@ -146,7 +146,7 @@ void OthelloBoard::exploreDirection(int cellPos, int inc) {
 void OthelloBoard::exploreMoves() {
     static size_t cellPos = 0; // index for player cell iteration
     moves.clear();
-    for (cellPos = 0; cellPos < cells.size(); ++cellPos){
+    for (cellPos = 0; cellPos < nCells; ++cellPos){
         if (cells[cellPos] != player) {
             continue;
         }

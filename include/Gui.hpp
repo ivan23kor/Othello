@@ -1,14 +1,13 @@
 #include <string>
 #include <SFML/Graphics.hpp>
-#include <SFML/Window.hpp>
-#include <SFML/System.hpp>
+#include <SFML/Window/Keyboard.hpp>
 #include "Board.hpp"
 
 #ifndef _GUI_HPP
 #define _GUI_HPP
 
 #define WINDOW_NAME "Othello player"
-#define WINDOW_SCALE 0.9
+#define WINDOW_SCALE 0.5
 
 #define DIVIDER_THICKNESS 10
 #define DIVIDER_POSITION 0.6

@@ -25,6 +25,7 @@ public:
     // Setup
     SquareBoard(int edgeSize);
     ~SquareBoard() {};
+
     bool print() const;
 
     // Setters getters
@@ -42,6 +43,8 @@ public:
     // Setup
     OthelloBoard(int edgeSize, char player=BLACK);
 
+    void printMoves() const;
+
     // Setters getters
     void setPlayer(char player) {this->player = player;}
     char getPlayer() {return player;}
@@ -49,8 +52,6 @@ public:
     std::vector<char> &getCells() {return cells;}
     std::vector<char> copyCells() {return std::vector<char> (cells);}
 
-    void printMoves();
-    
     // Move handling
     bool isGameOver();
     void changePlayer() {setPlayer(player == BLACK ? WHITE : BLACK);}

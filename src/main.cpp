@@ -48,18 +48,29 @@ void playGUI(OthelloBoard &board) {
     game.play();
 }
 
+int readBoardSize(int argc, char const *argv[]) {
+    // Check boardSize was provided at all
+    if (argc == 1) {
+        cerr << "Usage: othello BOARD_SIZE" << endl;
+        exit(1);
+    }
 
-int main(int argc, char const *argv[]) {
-    bool GUI = false;
-
-    int board_size = atoi(argv[1]);
-    if (board_size < MINIMUM_OTHELLO_BOARD_SIZE) {
-        cout << "Got invalid board size " << board_size;
+    int boardSize = atoi(argv[1]);
+    // Change boardSize to default if trash was provided
+    if (boardSize < MINIMUM_OTHELLO_BOARD_SIZE) {
+        cout << "Got invalid board size " << boardSize;
         cout << ". Changing the board size to " << MINIMUM_OTHELLO_BOARD_SIZE;
         cout << endl;
-        board_size = MINIMUM_OTHELLO_BOARD_SIZE;
+        boardSize = MINIMUM_OTHELLO_BOARD_SIZE;
     }
-    OthelloBoard board(board_size);
+    return boardSize;
+}
+
+int main(int argc, char const *argv[]) {
+    bool GUI = true;
+    int boardSize = readBoardSize(argc, argv);
+
+    OthelloBoard board(boardSize);
     Agent agent1(true, board);
     Agent agent2(false, board);
 

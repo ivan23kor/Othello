@@ -40,16 +40,17 @@ void Game::play() {
                         board);
                 }
             }
-            // if (event.type == Event::KeyPressed) {
-            //     if (event.key.code == KeyBoard::Space) {
-            //         board.move(PASSING_MOVE);
-            //     }
-            // }
-            if      (event.type == Event::MouseButtonPressed) {
-                board.exploreMoves();
+            if (event.type == Event::KeyPressed) {
+                if (event.key.code == Keyboard::Space) {
+                    board.move(PASSING_MOVE);
+                }
+            }
+            if      (event.type == Event::MouseButtonPressed ||
+                     event.key.code == Keyboard::Space) {
                 if (board.isGameOver()) {
                     closeWindow();
                 }
+                board.exploreMoves();
             }
             if (event.type == Event::Closed) {
                 closeWindow();
@@ -141,11 +142,11 @@ void BoardGui::place(int height) {
 void BoardGui::click(int x, int y, OthelloBoard &board) {
     int cellNumber = (y - base.offset) / base.step * edgeSize +
                      (x - base.offset) / base.step;
+    // board.print();
     if (board.getMoves().find(cellNumber) != board.getMoves().end()) {
         board.move(cellNumber);
         update(board.getCells());
     }
-    board.print();
 }
 
 void BoardGui::draw(RenderWindow &window) {
